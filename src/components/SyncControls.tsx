@@ -106,7 +106,7 @@ export default function SyncControls() {
         {job.message && <p>{job.message}</p>}
       </section>}
       {message && <p className="sync-message">{message}</p>}
-      <p className="hint">در پلن Pro، Worker زمان‌بندی‌شده عملیات فعال را در پس‌زمینه ادامه می‌دهد. در صورت توقف، همین Job قابل ادامه است.</p>
+      <p className="hint">Worker زمان‌بندی‌شده توسط GitHub Actions عملیات فعال را در پس‌زمینه ادامه می‌دهد. برای اجرای دستی مرحله‌ها، این صفحه را باز نگه دار و «اجرای مرحله بعد» را بزن.</p>
     </div>
   );
 }

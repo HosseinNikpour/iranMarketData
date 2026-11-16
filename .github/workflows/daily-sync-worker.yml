@@ -1,0 +1,52 @@
+name: Daily price sync worker
+
+on:
+  schedule:
+    - cron: "5 14 * * *"
+  workflow_dispatch:
+
+jobs:
+  drain-price-job:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Process pending price job
+        env:
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${VERCEL_APP_URL:-}" || -z "${CRON_SECRET:-}" ]]; then
+            echo "Missing VERCEL_APP_URL or CRON_SECRET repository secret."
+            exit 1
+          fi
+
+          base_url="${VERCEL_APP_URL%/}"
+          for ((tick=1; tick<=12000; tick++)); do
+            response=$(curl --silent --show-error --fail --max-time 70 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${base_url}/api/cron/worker")
+            echo "Tick ${tick}: ${response}"
+
+            status=$(jq -r '.job.status // empty' <<<"${response}")
+            if [[ "${status}" == "RUNNING" ]]; then
+              continue
+            fi
+
+            if [[ -z "${status}" ]]; then
+              message=$(jq -r '.message // empty' <<<"${response}")
+              if [[ "${message}" == "No active price job." ]]; then
+                echo "No active price job. Worker finished."
+                exit 0
+              fi
+              echo "Unexpected worker response: ${response}"
+              exit 1
+            fi
+
+            echo "Price job finished with status: ${status}"
+            exit 0
+          done
+
+          echo "Tick limit reached; the job remains saved and will resume in the next run."
