@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Instrument {
+  id           String       @id @default(cuid())
+  insCode      String       @unique
+  symbol       String
+  name         String?
+  market       String?
+  industry     String?
+  isActive     Boolean      @default(true)
+  lastSyncedAt          DateTime?
+  priceSyncStatus      String   @default("PENDING")
+  priceSyncLastAttempt DateTime?
+  priceSyncLastSuccess DateTime?
+  priceSyncError       String?
+  priceSyncRecordCount Int      @default(0)
+  prices               DailyPrice[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([symbol])
+}
+
+model DailyPrice {
+  id            String     @id @default(cuid())
+  instrumentId  String
+  date          DateTime
+  open          BigInt?
+  high          BigInt?
+  low           BigInt?
+  close         BigInt?
+  last          BigInt?
+  adjustedClose BigInt?
+  volume        BigInt?
+  value         BigInt?
+  rawPayload    Json?
+  instrument    Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+
+  @@unique([instrumentId, date])
+  @@index([date])
+}
+
+model MarketIndex {
+  id     String            @id @default(cuid())
+  symbol String            @unique
+  name   String
+  prices IndexDailyPrice[]
+}
+
+model IndexDailyPrice {
+  id      String      @id @default(cuid())
+  indexId String
+  date    DateTime
+  value   BigInt
+  index   MarketIndex @relation(fields: [indexId], references: [id], onDelete: Cascade)
+
+  @@unique([indexId, date])
+  @@index([date])
+}
+
+model Wave {
+  id          String   @id @default(cuid())
+  indexSymbol String
+  startDate   DateTime
+  endDate     DateTime
+  startValue  BigInt
+  endValue    BigInt
+  returnPct   Float
+  createdAt   DateTime @default(now())
+
+  @@index([indexSymbol, startDate, endDate])
+}
+
+model SyncRun {
+  id         String    @id @default(cuid())
+  kind       String
+  status     String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  fetched    Int       @default(0)
+  inserted   Int       @default(0)
+  message    String?
+  total      Int       @default(0)
+  completed  Int       @default(0)
+  failedCount Int      @default(0)
+  cursorId   String?
+}

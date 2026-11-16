@@ -1,0 +1,36 @@
+{
+  "name": "iran-market-analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "sync:instruments": "tsx src/worker/cli.ts instruments",
+    "sync:prices": "tsx src/worker/cli.ts prices",
+    "sync:all": "tsx src/worker/cli.ts all",
+    "sync:prices:resume": "tsx src/worker/cli.ts prices:resume",
+    "sync:prices:incremental": "tsx src/worker/cli.ts prices:incremental"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "highcharts": "^12.4.0",
+    "highcharts-react-official": "^3.2.3",
+    "lucide-react": "^0.468.0",
+    "next": "15.5.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.7",
+    "prisma": "6.19.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.8.3"
+  }
+}
